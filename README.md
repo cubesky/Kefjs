@@ -13,8 +13,8 @@ Import Kefjs from [CubeSky Repo](https://cubesky-mvn.github.io/) with Maven or G
 Ef.setParser(ParserMethod) //Change the default parser for ef.js so you can use a different type of template
 Ef.parseEft('Your awesome template') //Get ef.js ast using default parser
 
-val templateString = 'Your awesome template'
-val ast = [/* AST Which Support by ef */]
+val templateString = "Your awesome template"
+val ast = arrayOf(/* AST Which Support by ef */)
 
 val template1 = Ef.create(template)
 val template2 = Ef.create(ast)
