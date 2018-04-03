@@ -1,6 +1,7 @@
 package kefjs
 
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.Event
 
 class Ef {
     class EfInstance {
@@ -73,8 +74,12 @@ class Ef {
     fun getData(arg: String) = instance.`$data`[arg] as Any
 
     //Mount
-    fun subMount(root: String,ef: Ef) {
-        instance[root] = ef.instance
+    fun subMount(root: String,ef: Ef?) {
+        if (ef == null) {
+            instance[root] = null
+        } else {
+            instance[root] = ef.instance
+        }
     }
 
     fun listGet(key: String, position: Int) = instance[key][position]["\$k\$efjs"] as Ef
@@ -156,7 +161,7 @@ class Ef {
     }
     public interface MethodFunction3 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: EfInstance, value: String, e : HTMLElement)
+        fun call(state: EfInstance, value: String, e : Event)
     }
 }
 
