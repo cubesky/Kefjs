@@ -32,7 +32,15 @@ class Ef {
 
         fun exec(force : Boolean = false) = js("ef.exec(force)") as Int
 
-        fun bundle(func: MethodFunction) = js("ef.bundle(func.call)") as Int
+        fun bundle(func: BunbleFunction) : Int{
+            inform()
+            var result = false
+            try {
+                result = func.call()
+            } finally {
+                return exec(result)
+            }
+        }
 
         fun onNextRender(func: MethodFunction) {
             js("ef.onNextRender(func.call)")
@@ -147,6 +155,10 @@ class Ef {
         fun call(str: String)
     }
     interface BaseMethodFunction { }
+    public interface BunbleFunction {
+        @JsName("call")
+        fun call() : Boolean
+    }
     public interface MethodFunction : BaseMethodFunction{
         @JsName("call")
         fun call()
