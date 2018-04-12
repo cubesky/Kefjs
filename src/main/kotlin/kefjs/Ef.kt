@@ -3,7 +3,7 @@ package kefjs
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
-class Ef {
+open class Ef {
     class EfInstance {
         fun getKEf() = getKEf(this)
     }
@@ -53,16 +53,16 @@ class Ef {
         //Kef
         private fun getKEf(ef : dynamic) : Ef = ef["\$k\$efjs"] as Ef
     }
-    private constructor(proto: EfPrepare) {
+    constructor(proto: EfPrepare) {
         instance = js("new proto")
         instance["\$k\$efjs"] = this
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
     }
     //Init Mount
-    fun mount(target: HTMLElement?, option: String = "append") {
+    open fun mount(target: HTMLElement?, option: String = "append") {
         instance.`$mount`(js("{target: target, option: option}"))
     }
-    fun umount() {
+    open fun umount() {
         instance.`$umount`()
     }
 
@@ -82,7 +82,7 @@ class Ef {
     fun getData(arg: String) = instance.`$data`[arg] as Any
 
     //Mount
-    fun subMount(root: String,ef: Ef?) {
+    open fun subMount(root: String,ef: Ef?) {
         if (ef == null) {
             instance[root] = null
         } else {
