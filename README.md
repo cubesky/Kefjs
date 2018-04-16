@@ -70,5 +70,24 @@ component1.mount(target, option) // Mount method called by ef when trying to mou
 component1.umount() // Unmount from parent
 ```
 
+## Experimental
+These feature is provide by Kefjs. Maybe not stable or maybe not recommended by `ef.js` author.
+
+ * Data Store in Ef instance
+   ```kotlin
+    component1.editUserStore(key, value) //key is String, value is Any, pass null to value can remove this key.  
+    component1.getUserStore(key, default) //get value or default
+   ```
+ * OnMountListener
+   ```kotlin
+    component2.setOnMountListener(object : OnMountListener {
+         override fun onMount(ef: Ef) {
+             //Default
+         }
+    }) //Set Listener, use null to remove this listener
+    component1.mount_calllistener("mountpoint", component2) //Mount and call listener
+    ```
+    This feature is based on Data Store.
+
 ## LICENSE
 [MIT](https://raw.githubusercontent.com/cubesky/Kefjs/master/LICENSE)
