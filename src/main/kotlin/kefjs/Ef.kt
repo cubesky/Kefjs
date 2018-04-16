@@ -19,6 +19,9 @@ open class Ef {
             return Ef(efprepare)
         }
     }
+    enum class EfOption(s: String) {
+        REPLACE("replace"), APPEND("append")
+    }
     private var instance : dynamic
     private val valueFuncMap = mutableMapOf<MethodFunction2, dynamic>()
     private val methodFuncMap = mutableMapOf<BaseMethodFunction, dynamic>()
@@ -62,6 +65,9 @@ open class Ef {
     open fun mount(target: HTMLElement?, option: String = "append") {
         instance.`$mount`(js("{target: target, option: option}"))
     }
+    open fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
+        instance.`$mount`(js("{target: target, option: option.name}"))
+    }
     open fun umount() {
         instance.`$umount`()
     }
@@ -82,12 +88,16 @@ open class Ef {
     fun getData(arg: String) = instance.`$data`[arg] as Any
 
     //Mount
+    @Deprecated("Use mount instead.")
     open fun subMount(root: String,ef: Ef?) {
         if (ef == null) {
             instance[root] = null
         } else {
             instance[root] = ef.instance
         }
+    }
+    open fun mount(root: String, ef: Ef?) {
+        subMount(root, ef)
     }
 
     fun listGet(key: String, position: Int) = instance[key][position]["\$k\$efjs"] as Ef
