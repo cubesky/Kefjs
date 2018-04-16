@@ -27,6 +27,12 @@ open class Ef {
     private val methodFuncMap = mutableMapOf<BaseMethodFunction, dynamic>()
     private val methodNameMap = mutableMapOf<String, BaseMethodFunction>()
     companion object {
+        /*
+         0 for production
+         1 for debug
+         */
+        var infoLevel = 1
+
         fun create(tpl:String) = EfPrepare(tpl)
 
         fun create(ast:Array<Any>) = EfPrepare(ast)

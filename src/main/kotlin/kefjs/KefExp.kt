@@ -5,12 +5,27 @@ fun Ef.setOnMountListener(callback: OnMountListener?) {
 }
 
 fun Ef.mount_calllistener(root: String, ef: Ef?) {
+    if (Ef.infoLevel > 0) when(Ef.status()) {
+        EfStatus.PAUSED -> console.warn("ef.js render is paused! Check your code!")
+        EfStatus.PANIC -> console.error("What?! ef.js panic! Ouch!")
+        EfStatus.RUNNING -> { /* Nothing happened */ }
+    }
     this.mount(root, ef)
     ef!!.getUserStore("onMountListener_\$kefexp", object : OnMountListener {
         override fun onMount(ef: Ef) {
-            println("Nothing to call")
+            if(Ef.infoLevel > 0) console.warn("Nothing to call")
         }
     }).onMount(ef)
+}
+
+fun Ef.Companion.status() : EfStatus {
+    Ef.inform()
+    val execReturn = Ef.exec()
+    return if (execReturn > 0) EfStatus.PAUSED else if (execReturn == 0) EfStatus.RUNNING else EfStatus.PANIC
+}
+
+enum class EfStatus {
+    RUNNING, PAUSED, PANIC
 }
 
 interface OnMountListener {
