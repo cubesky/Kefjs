@@ -41,16 +41,15 @@ component2.getElement() // The DOM element of component2
 
 component1.setData("something", "Something new") // Update Binding Data
 component2.setMethod("someMethod", object : MethodFunction3 {
-  override fun call(state: Ef.EfInstance, value: String, e: Event) {
-    val efstate = state.getKEf() // Transform EfInstance to Ef
-    efstate.setData("something", "Something new")
+  override fun call(state: Ef, value: String, e: Event) {
+    state.setData("something", "Something new")
     println("Event target ${e.target}")
     println("Value passed $value")
   }
 })
 
 val logData = object: MethodFunction2 {
-  override fun call(state: Ef.EfInstance, value: String) {
+  override fun call(state: Ef, value: String) {
     println("Subscribed data updated: $value")
   }
 }
