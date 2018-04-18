@@ -4,9 +4,6 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
 open class Ef {
-    class EfInstance {
-        fun getKEf() = getKEf(this)
-    }
     class EfPrepare {
         private var efprepare : dynamic
         constructor(tpl:String) {
@@ -68,8 +65,9 @@ open class Ef {
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
     }
     //Init Mount
+    @Deprecated("Use EfOption instead", ReplaceWith("mount(target, EfOption.REPLACE)", "kefjs.Ef.EfOption"))
     open fun mount(target: HTMLElement?, option: String = "append") {
-        instance.`$mount`(js("{target: target, option: option}"))
+        mount(target, EfOption.valueOf(option))
     }
     open fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
         instance.`$mount`(js("{target: target, option: option.name}"))
@@ -80,7 +78,7 @@ open class Ef {
 
     //Subscribe
     fun subscribe(value: String, func: MethodFunction2) {
-        valueFuncMap.put(func, js("function (option) { func.call(option.state, option.value) }"))
+        valueFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
         instance.`$subscribe`(value,valueFuncMap[func])
     }
     fun unsubscribe(value: String, func: MethodFunction2) {
@@ -94,16 +92,16 @@ open class Ef {
     fun getData(arg: String) = instance.`$data`[arg] as Any
 
     //Mount
-    @Deprecated("Use mount instead.")
-    open fun subMount(root: String,ef: Ef?) {
+    @Deprecated("Use mount instead.", ReplaceWith("mount(root, ef)"))
+    open fun subMount(root: String, ef: Ef?) {
+        mount(root, ef)
+    }
+    open fun mount(root: String, ef: Ef?) {
         if (ef == null) {
             instance[root] = null
         } else {
             instance[root] = ef.instance
         }
-    }
-    open fun mount(root: String, ef: Ef?) {
-        subMount(root, ef)
     }
 
     fun listGet(key: String, position: Int) = instance[key][position]["\$k\$efjs"] as Ef
@@ -136,17 +134,17 @@ open class Ef {
 
     //Methods
     fun setMethod(name: String, func: MethodFunction1) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state) }"))
+        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
     fun setMethod(name: String, func: MethodFunction2) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state, option.value) }"))
+        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
     fun setMethod(name: String, func: MethodFunction3) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state, option.value, option.e) }"))
+        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value, option.e) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
@@ -181,15 +179,15 @@ open class Ef {
     }
     public interface MethodFunction1 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: EfInstance)
+        fun call(state: Ef)
     }
     public interface MethodFunction2 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: EfInstance, value: String)
+        fun call(state: Ef, value: String)
     }
     public interface MethodFunction3 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: EfInstance, value: String, e : Event)
+        fun call(state: Ef, value: String, e : Event)
     }
 }
 
