@@ -70,7 +70,11 @@ open class Ef {
         mount(target, EfOption.valueOf(option))
     }
     open fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
-        instance.`$mount`(js("{target: target, option: option.name}"))
+        val option_str = when(option) {
+            EfOption.APPEND -> "append"
+            EfOption.REPLACE -> "replace"
+        }
+        instance.`$mount`(js("{target: target, option: option_str}"))
     }
     open fun umount() {
         instance.`$umount`()
