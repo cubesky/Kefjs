@@ -76,6 +76,9 @@ open class Ef {
         }
         instance.`$mount`(js("{target: target, option: option_str}"))
     }
+    open fun mount(target: HTMLElement?) {
+        mount(target, EfOption.APPEND)
+    }
     open fun umount() {
         instance.`$umount`()
     }
@@ -90,10 +93,14 @@ open class Ef {
         valueFuncMap.remove(func)
     }
     //Data
+    fun data(arg: String) = KefData(arg, instance)
+
+    @Deprecated("Use ef.data(arg).set(data)", ReplaceWith("data(arg).set(data)"))
     fun setData(arg: String, data: Any) {
-        instance.`$data`[arg] = data
+        data(arg).set(data)
     }
-    fun getData(arg: String) = instance.`$data`[arg] as Any
+    @Deprecated("Use ef.data(arg).get()", ReplaceWith("data(arg).get()"))
+    fun getData(arg: String) = data(arg).get()
 
     //Mount
     @Deprecated("Use mount instead.", ReplaceWith("mount(root, ef)"))
@@ -108,18 +115,28 @@ open class Ef {
         }
     }
 
-    fun listGet(key: String, position: Int) = instance[key][position]["\$k\$efjs"] as Ef
+    fun list(key: String) = KefList(key, instance)
 
+    @Deprecated("Use ef.list(key)[position]", ReplaceWith("list(key)[position]"))
+    fun listGet(key: String, position: Int) = KefList(key, instance)[position]
+
+    @Deprecated("Use ef.list(key).push(ef)", ReplaceWith("list(key).push(ef)"))
     fun listPush(key: String, efinstance: Ef) {
-        instance[key].push(efinstance.instance)
+        KefList(key, instance).push(efinstance.instance)
     }
+
+    @Deprecated("Use ef.list(key).remove(position)", ReplaceWith("list(key).remove(position)"))
     fun listRemove(key: String, position: Int) {
-        instance[key].remove(position)
+        KefList(key, instance).remove(position)
     }
+
+    @Deprecated("Use ef.list(key).empty()", ReplaceWith("list(key).empty()"))
     fun listEmpty(key: String) {
-        instance[key].empty()
+        KefList(key, instance).empty()
     }
-    fun listSize(key: String) = instance[key].length as Int
+
+    @Deprecated("Use ef.list(key).size()", ReplaceWith("list(key).size()"))
+    fun listSize(key: String) = KefList(key, instance).size()
 
     //Refs
     fun getRefs(name:String) = instance.`$refs`[name] as HTMLElement
@@ -193,6 +210,29 @@ open class Ef {
         @JsName("call")
         fun call(state: Ef, value: String, e : Event)
     }
+
+    class KefList(val key: String, val instance: dynamic) {
+        operator fun get(position: Int): Ef? = instance[key][position]["\$k\$efjs"] as Ef
+        fun push(efinstance: Ef) {
+            instance[key].push(efinstance.instance)
+        }
+        fun remove(position: Int) {
+            instance[key].remove(position)
+        }
+        fun empty() {
+            instance[key].empty()
+        }
+        fun size() = instance[key].length as Int
+    }
+
+    class KefData(val arg: String, val instance: dynamic) {
+        fun get() = instance.`$data`[arg] as Any
+        fun <T> get() = instance.`$data`[arg].unsafeCast<T>()
+        fun set(data: Any) {
+            instance.`$data`[arg] = data
+        }
+    }
+
 }
 
 fun String.prepareEf() : Ef.EfPrepare {
