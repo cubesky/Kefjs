@@ -24,7 +24,7 @@ Your awesome template
 
 val component1 = template1.newInstance()
 val component3 = template3.newInstance().apply {
-  this.data(key).set(value) // same as ef.js component1.$data.key = value
+  this.data()[key] = value // same as ef.js component1.$data.key = value
   this.setMethod(methodName, MethodFunction1) // same as ef.js component1.$methods.key = function ({state}) {}
   this.setMethod(methodName, MethodFunction2) // same as ef.js component1.$methods.key = function ({state, value}) {}
   this.setMethod(methodName, MethodFunction3) // same as ef.js component1.$methods.key = function ({state, value, e}) {}
@@ -39,7 +39,7 @@ Ef.bundle(MethodFunction) // Wrapper for Ef.inform() and Ef.exec()
 component1.getElement() // The DOM element of component1
 component2.getElement() // The DOM element of component2
 
-component1.data("something").set("Something new") // Update Binding Data
+component1.data()["something"] = "Something new" // Update Binding Data
 component2.setMethod("someMethod", object : MethodFunction3 {
   override fun call(state: Ef, value: String, e: Event) {
     state.data("something").set("Something new")

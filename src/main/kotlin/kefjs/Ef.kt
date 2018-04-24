@@ -93,14 +93,15 @@ open class Ef {
         valueFuncMap.remove(func)
     }
     //Data
-    fun data(arg: String) = KefData(arg, instance)
+    fun data() = KefData(instance)
 
-    @Deprecated("Use ef.data(arg).set(data)", ReplaceWith("data(arg).set(data)"))
+    @Deprecated("Use ef.data()[arg] = data", ReplaceWith("data()[arg] = data"))
     fun setData(arg: String, data: Any) {
-        data(arg).set(data)
+        data()[arg] = data
     }
-    @Deprecated("Use ef.data(arg).get()", ReplaceWith("data(arg).get()"))
-    fun getData(arg: String) = data(arg).get()
+
+    @Deprecated("Use ef.data()[arg]", ReplaceWith("data()[arg]"))
+    fun getData(arg: String) = data()[arg]
 
     //Mount
     @Deprecated("Use mount instead.", ReplaceWith("mount(root, ef)"))
@@ -225,10 +226,10 @@ open class Ef {
         fun size() = instance[key].length as Int
     }
 
-    class KefData(val arg: String, val instance: dynamic) {
-        fun get() = instance.`$data`[arg] as Any
-        fun <T> get() = instance.`$data`[arg].unsafeCast<T>()
-        fun set(data: Any) {
+    class KefData(val instance: dynamic) {
+        operator fun get(arg: String) = instance.`$data`[arg] as Any
+        operator fun <T> get(arg: String) = instance.`$data`[arg].unsafeCast<T>()
+        operator fun set(arg: String, data:Any) {
             instance.`$data`[arg] = data
         }
     }
