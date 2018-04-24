@@ -24,7 +24,7 @@ Your awesome template
 
 val component1 = template1.newInstance()
 val component3 = template3.newInstance().apply {
-  this.setData(key, value) // same as ef.js component1.$data.key = value
+  this.data(key).set(value) // same as ef.js component1.$data.key = value
   this.setMethod(methodName, MethodFunction1) // same as ef.js component1.$methods.key = function ({state}) {}
   this.setMethod(methodName, MethodFunction2) // same as ef.js component1.$methods.key = function ({state, value}) {}
   this.setMethod(methodName, MethodFunction3) // same as ef.js component1.$methods.key = function ({state, value, e}) {}
@@ -39,10 +39,10 @@ Ef.bundle(MethodFunction) // Wrapper for Ef.inform() and Ef.exec()
 component1.getElement() // The DOM element of component1
 component2.getElement() // The DOM element of component2
 
-component1.setData("something", "Something new") // Update Binding Data
+component1.data("something").set("Something new") // Update Binding Data
 component2.setMethod("someMethod", object : MethodFunction3 {
   override fun call(state: Ef, value: String, e: Event) {
-    state.setData("something", "Something new")
+    state.data("something").set("Something new")
     println("Event target ${e.target}")
     println("Value passed $value")
   }
@@ -60,10 +60,10 @@ component2.getParent() // Get where the component is mounted
 
 component2.getRefs("example") // Get referenced nodes named 'example'
 
-component1.subMount("mountingPoint",component2) // Mount component2 to 'mountingPoint' on component1
-component1.subMount("mountingPoint",null) // Detach the mounted component
+component1.mount("mountingPoint",component2) // Mount component2 to 'mountingPoint' on component1
+component1.mount("mountingPoint",null) // Detach the mounted component
 
-component1.listPush("listMP", component2) // Mount component2 to list 'listMP' mounting point on component1
+component1.list("listMP").push(component2) // Mount component2 to list 'listMP' mounting point on component1
 
 component1.mount(target, option) // Mount method called by ef when trying to mount
 component1.umount() // Unmount from parent
