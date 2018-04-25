@@ -41,7 +41,7 @@ component2.getElement() // The DOM element of component2
 
 component1.data["something"] = "Something new" // Update Binding Data
 component2.setMethod("someMethod", object : MethodFunction3 {
-  override fun call(state: Ef, value: String, e: Event) {
+  override fun invoke(state: Ef, value: String, e: Event) {
     state.data["something"] = "Something new"
     println("Event target ${e.target}")
     println("Value passed $value")
@@ -49,7 +49,7 @@ component2.setMethod("someMethod", object : MethodFunction3 {
 })
 
 val logData = object: MethodFunction2 {
-  override fun call(state: Ef, value: String) {
+  override fun invoke(state: Ef, value: String) {
     println("Subscribed data updated: $value")
   }
 }
