@@ -10,7 +10,7 @@ buildscript {
 }
 
 group 'party.liyin'
-version '0.7.2-K3'
+version '0.7.2-K5'
 
 apply plugin: 'kotlin2js'
 apply plugin: 'maven'

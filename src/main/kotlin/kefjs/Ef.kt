@@ -3,7 +3,7 @@ package kefjs
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
-open class Ef {
+class Ef {
     class EfPrepare {
         private var efprepare : dynamic
         constructor(tpl:String) {
@@ -42,7 +42,7 @@ open class Ef {
             inform()
             var result = false
             try {
-                result = func.call()
+                result = func.invoke()
             } finally {
                 return exec(result)
             }
@@ -63,23 +63,24 @@ open class Ef {
         instance = js("new proto")
         instance["\$k\$efjs"] = this
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
+        data = KefData(instance)
     }
     //Init Mount
     @Deprecated("Use EfOption instead", ReplaceWith("mount(target, EfOption.REPLACE)", "kefjs.Ef.EfOption"))
-    open fun mount(target: HTMLElement?, option: String = "append") {
+    fun mount(target: HTMLElement?, option: String = "append") {
         mount(target, EfOption.valueOf(option))
     }
-    open fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
+    fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
         val option_str = when(option) {
             EfOption.APPEND -> "append"
             EfOption.REPLACE -> "replace"
         }
         instance.`$mount`(js("{target: target, option: option_str}"))
     }
-    open fun mount(target: HTMLElement?) {
+    fun mount(target: HTMLElement?) {
         mount(target, EfOption.APPEND)
     }
-    open fun umount() {
+    fun umount() {
         instance.`$umount`()
     }
 
@@ -93,22 +94,22 @@ open class Ef {
         valueFuncMap.remove(func)
     }
     //Data
-    fun data() = KefData(instance)
+    public val data : KefData
 
-    @Deprecated("Use ef.data()[arg] = data", ReplaceWith("data()[arg] = data"))
+    @Deprecated("Use ef.data[arg] = data", ReplaceWith("data[arg] = data"))
     fun setData(arg: String, data: Any) {
-        data()[arg] = data
+        this.data[arg] = data
     }
 
-    @Deprecated("Use ef.data()[arg]", ReplaceWith("data()[arg]"))
-    fun getData(arg: String) = data()[arg]
+    @Deprecated("Use ef.data[arg]", ReplaceWith("data[arg]"))
+    fun getData(arg: String) = this.data[arg]
 
     //Mount
     @Deprecated("Use mount instead.", ReplaceWith("mount(root, ef)"))
-    open fun subMount(root: String, ef: Ef?) {
+    fun subMount(root: String, ef: Ef?) {
         mount(root, ef)
     }
-    open fun mount(root: String, ef: Ef?) {
+    fun mount(root: String, ef: Ef?) {
         if (ef == null) {
             instance[root] = null
         } else {
@@ -123,7 +124,7 @@ open class Ef {
 
     @Deprecated("Use ef.list(key).push(ef)", ReplaceWith("list(key).push(ef)"))
     fun listPush(key: String, efinstance: Ef) {
-        KefList(key, instance).push(efinstance.instance)
+        KefList(key, instance).push(efinstance)
     }
 
     @Deprecated("Use ef.list(key).remove(position)", ReplaceWith("list(key).remove(position)"))
@@ -186,37 +187,48 @@ open class Ef {
 
     //Raw
     fun getInstance() = instance
+
+    //Interface
     public interface ParserFunction {
         @JsName("call")
-        fun call(str: String)
+        operator fun invoke(str: String)
     }
     interface BaseMethodFunction { }
     public interface BunbleFunction {
         @JsName("call")
-        fun call() : Boolean
+        operator fun invoke() : Boolean
     }
     public interface MethodFunction : BaseMethodFunction{
         @JsName("call")
-        fun call()
+        operator fun invoke()
     }
     public interface MethodFunction1 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: Ef)
+        operator fun invoke(state: Ef)
     }
     public interface MethodFunction2 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: Ef, value: String)
+        operator fun invoke(state: Ef, value: String)
     }
     public interface MethodFunction3 : BaseMethodFunction{
         @JsName("call")
-        fun call(state: Ef, value: String, e : Event)
+        operator fun invoke(state: Ef, value: String, e : Event)
     }
 
+    //Helper
     class KefList(val key: String, val instance: dynamic) {
         operator fun get(position: Int): Ef? = instance[key][position]["\$k\$efjs"] as Ef
-        fun push(efinstance: Ef) {
-            instance[key].push(efinstance.instance)
+        fun push(efinstance: Ef) = instance[key].push(efinstance.instance) as Int
+        fun push(vararg efinstances: Ef) : Int {
+            Ef.bundle(object : BunbleFunction {
+                override fun invoke(): Boolean {
+                    efinstances.forEach { push(it) }
+                    return false
+                }
+            })
+            return size()
         }
+
         fun remove(position: Int) {
             instance[key].remove(position)
         }
@@ -236,9 +248,5 @@ open class Ef {
 
 }
 
-fun String.prepareEf() : Ef.EfPrepare {
-    return Ef.create(this)
-}
-fun String.instanceEf() : Ef {
-    return Ef.create(this).newInstance()
-}
+fun String.prepareEf() : Ef.EfPrepare = Ef.create(this)
+fun String.instanceEf() : Ef = this.prepareEf().newInstance()
