@@ -37,6 +37,21 @@ class KefMethodBuilder {
     infix fun String.bind(func: (state: Ef, value: String, e: Event) -> Unit) {
         method3 += KefMethod3Model(this, func)
     }
+    infix fun String.bind(func: Ef.MethodFunction1) {
+        method1 += KefMethod1Model(this, { state ->
+            func(state)
+        })
+    }
+    infix fun String.bind(func: Ef.MethodFunction2) {
+        method2 += KefMethod2Model(this, { state, value ->
+            func(state, value)
+        })
+    }
+    infix fun String.bind(func: Ef.MethodFunction3) {
+        method3 += KefMethod3Model(this, { state, value, e ->
+            func(state, value, e)
+        })
+    }
     fun build() = KefMethodModel(method1,method2,method3)
 }
 
