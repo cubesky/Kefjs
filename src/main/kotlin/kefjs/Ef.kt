@@ -129,7 +129,6 @@ class Ef {
     }
 
     //Subscribe
-    @Deprecated("Use lambda instead. Will remove in 0.7.3")
     fun subscribe(name: String, func: MethodFunction2) {
         valueFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
         instance.`$subscribe`(name,valueFuncMap[func])
@@ -208,19 +207,16 @@ class Ef {
     fun debugEFPLACEHOLDER() = instance.__EFPLACEHOLDER__ as HTMLElement
 
     //Methods
-    @Deprecated("Use lambda instead. Will removed in 0.7.3")
     fun setMethod(name: String, func: MethodFunction1) {
         if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
-    @Deprecated("Use lambda instead. Will removed in 0.7.3")
     fun setMethod(name: String, func: MethodFunction2) {
         if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
-    @Deprecated("Use lambda instead. Will removed in 0.7.3")
     fun setMethod(name: String, func: MethodFunction3) {
         if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value, option.e) }"))
         methodNameMap.put(name, func)
