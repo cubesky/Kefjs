@@ -1,7 +1,16 @@
 package kefjs
 
+@Deprecated("Use lambda instead. Will remove in 0.7.3")
 fun Ef.setOnMountListener(callback: OnMountListener?) {
     this.editUserStore("onMountListener_\$kefexp", callback)
+}
+
+fun Ef.setOnMountListener(callback: (ef:Ef) -> Unit) {
+    setOnMountListener(object : OnMountListener {
+        override fun onMount(ef: Ef) {
+            callback(ef)
+        }
+    })
 }
 
 fun Ef.mount_calllistener(root: String, ef: Ef?) {
