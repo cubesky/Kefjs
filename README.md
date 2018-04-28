@@ -23,12 +23,16 @@ Your awesome template
 """.prepareEf()
 
 val component1 = template1.newInstance()
-val component3 = template3.newInstance().apply {
-  this.data[key] = value // same as ef.js component1.$data.key = value
-  this.setMethod(methodName, MethodFunction1) // same as ef.js component1.$methods.key = function ({state}) {}
-  this.setMethod(methodName, MethodFunction2) // same as ef.js component1.$methods.key = function ({state, value}) {}
-  this.setMethod(methodName, MethodFunction3) // same as ef.js component1.$methods.key = function ({state, value, e}) {}
-}
+val component3 = template3.newInstance(kefconfig {
+  data {
+    key setTo value
+  }
+  methods {
+    methodName bind { state, value, e ->
+                      
+    } // same as ef.js component1.$methods.key = function ({state, value, e}) {}
+  }
+})
 
 Ef.onNextRender(MethodFunction) // Cache operations to execute on next render
 Ef.inform() // Tell ef to cache operations **USE WITH CARE**
@@ -40,18 +44,14 @@ component1.getElement() // The DOM element of component1
 component2.getElement() // The DOM element of component2
 
 component1.data["something"] = "Something new" // Update Binding Data
-component2.setMethod("someMethod", object : MethodFunction3 {
-  override fun invoke(state: Ef, value: String, e: Event) {
+component2.setMethod("someMethod", { state, value ,e ->
     state.data["something"] = "Something new"
     println("Event target ${e.target}")
     println("Value passed $value")
-  }
 })
 
-val logData = object: MethodFunction2 {
-  override fun invoke(state: Ef, value: String) {
+val logData = Ef.createFunc { state, value ,_ ->
     println("Subscribed data updated: $value")
-  }
 }
 component1.subscribe("info.data", logData) // Observe a value
 component1.unsubscribe("info.data", logData) // Stop observing a value
@@ -79,11 +79,9 @@ These feature is provide by Kefjs. Maybe not stable or maybe not recommended by 
    ```
  * OnMountListener
    ```kotlin
-    component2.setOnMountListener(object : OnMountListener {
-         override fun onMount(ef: Ef) {
+    component2.setOnMountListener{ ef ->
              //Default
-         }
-    }) //Set Listener, use null to remove this listener
+    } //Set Listener, use null to remove this listener
     component1.mount_calllistener("mountpoint", component2) //Mount and call listener
     ```
     This feature is based on Data Store.
