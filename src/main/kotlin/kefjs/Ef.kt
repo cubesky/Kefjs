@@ -3,7 +3,7 @@ package kefjs
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
-class Ef {
+class Ef : IEF{
     class EfPrepare {
         private var efprepare : dynamic
         constructor(tpl:String) {
@@ -12,17 +12,15 @@ class Ef {
         constructor(ast: Array<Any>) {
             efprepare = js("(ef.create(ast))")
         }
-        fun newInstance() : Ef = Ef(efprepare)
-
-        fun newInstance(config:KefConfigModel): Ef = Ef(efprepare, config)
+        fun newInstance(config:KefConfigModel = kefconfig {  }): Ef = Ef(efprepare, config)
     }
     enum class EfOption(s: String) {
         REPLACE("replace"), APPEND("append")
     }
     private var instance : dynamic
-    private val valueFuncMap = mutableMapOf<MethodFunction2, dynamic>()
-    private val methodFuncMap = mutableMapOf<BaseMethodFunction, dynamic>()
-    private val methodNameMap = mutableMapOf<String, BaseMethodFunction>()
+    private val valueFuncMap = mutableMapOf<(state:Ef, value:String, e:Event)->Unit, dynamic>()
+    private val methodFuncMap = mutableMapOf<(state:Ef, value:String, e:Event)->Unit, dynamic>()
+    private val methodNameMap = mutableMapOf<String, (state:Ef, value:String, e:Event)->Unit>()
     companion object {
         /*
          0 for production
@@ -38,15 +36,6 @@ class Ef {
 
         fun exec(force : Boolean = false) = js("ef.exec(force)") as Int
 
-        fun bundle(func: BunbleFunction) : Int{
-            inform()
-            var result = false
-            try {
-                result = func.invoke()
-            } finally {
-                return exec(result)
-            }
-        }
         fun bundle(func: () -> Boolean) : Int{
             inform()
             var result = false
@@ -57,31 +46,23 @@ class Ef {
             }
         }
 
-        fun onNextRender(func: MethodFunction) {
-            js("ef.onNextRender(func.call)")
+        fun onNextRender(func: ()->Unit) {
+            js("ef.onNextRender(func)")
         }
+
         fun parseEft(tplast : String) = js("ef.parseEft(tplast)").unsafeCast<Array<dynamic>>()
-        fun setParser(func : ParserFunction) {
-            js("ef.setParser(func.call)")
-        }
+
         fun setParser(func: (str: String)->Unit) {
-            setParser(object : ParserFunction {
-                override fun invoke(str: String) {
-                    func(str)
-                }
-            })
+            js("ef.setParser(func)")
         }
 
         //Kef
         private fun getKEf(ef : dynamic) : Ef = ef["\$k\$efjs"] as Ef
+
+        //Utils
+        fun createFunc(func: (state: Ef, value: String, e: Event) -> Unit) = func
     }
-    constructor(proto: EfPrepare) {
-        instance = js("new proto")
-        instance["\$k\$efjs"] = this
-        instance["getKEf"] = js("function () { return this.\$k\$efjs }")
-        data = KefData(instance)
-    }
-    constructor(proto: EfPrepare, config:KefConfigModel) {
+    private constructor(proto: EfPrepare, config:KefConfigModel) {
         instance = js("new proto")
         instance["\$k\$efjs"] = this
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
@@ -90,13 +71,7 @@ class Ef {
             config.data.forEach {
                 data[it.arg] = it.data
             }
-            config.method1.forEach {
-                setMethod(it.name, it.func)
-            }
-            config.method2.forEach {
-                setMethod(it.name, it.func)
-            }
-            config.method3.forEach {
+            config.method.forEach {
                 setMethod(it.name, it.func)
             }
             this.setOnMountListener(config.onMount)
@@ -110,10 +85,6 @@ class Ef {
         }
     }
     //Init Mount
-    @Deprecated("Use EfOption instead. Will remove in 0.7.3", ReplaceWith("mount(target, EfOption.REPLACE)", "kefjs.Ef.EfOption"))
-    fun mount(target: HTMLElement?, option: String = "append") {
-        mount(target, EfOption.valueOf(option))
-    }
     fun mount(target: HTMLElement?, option: EfOption = EfOption.APPEND) {
         val option_str = when(option) {
             EfOption.APPEND -> "append"
@@ -129,38 +100,19 @@ class Ef {
     }
 
     //Subscribe
-    fun subscribe(name: String, func: MethodFunction2) {
-        valueFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
+    fun subscribe(name: String, func: (state: Ef, value: String, e: Event)-> Unit) {
+        valueFuncMap.put(func, js("function (option) { func(option.state.\$k\$efjs, option.value, '') }"))
         instance.`$subscribe`(name,valueFuncMap[func])
     }
-    fun subscribe(name: String, func: (state: Ef, value: String)-> Unit) {
-        subscribe(name, object : MethodFunction2{
-            override fun invoke(state: Ef, value: String) {
-                func(state, value)
-            }
-        })
-    }
-    fun unsubscribe(name: String, func: MethodFunction2) {
+    fun unsubscribe(name: String, func: (state: Ef, value: String, e: Event)-> Unit) {
         instance.`$unsubscribe`(name,valueFuncMap[func])
         valueFuncMap.remove(func)
     }
     //Data
     public val data : KefData
 
-    @Deprecated("Use ef.data[arg] = data. Will remove in 0.7.3", ReplaceWith("data[arg] = data"))
-    fun setData(arg: String, data: Any) {
-        this.data[arg] = data
-    }
-
-    @Deprecated("Use ef.data[arg]. Will remove in 0.7.3", ReplaceWith("data[arg]"))
-    fun getData(arg: String) = this.data[arg]
-
     //Mount
-    @Deprecated("Use mount instead. Will remove in 0.7.3", ReplaceWith("mount(root, ef)"))
-    fun subMount(root: String, ef: Ef?) {
-        mount(root, ef)
-    }
-    fun mount(root: String, ef: Ef?) {
+    override fun mount(root: String, ef: Ef?) {
         if (ef == null) {
             instance[root] = null
         } else {
@@ -170,26 +122,6 @@ class Ef {
 
     fun list(key: String) = KefList(key, instance)
 
-    @Deprecated("Use ef.list(key)[position]. Will remove in 0.7.3", ReplaceWith("list(key)[position]"))
-    fun listGet(key: String, position: Int) = KefList(key, instance)[position]
-
-    @Deprecated("Use ef.list(key).push(ef). Will remove in 0.7.3", ReplaceWith("list(key).push(ef)"))
-    fun listPush(key: String, efinstance: Ef) {
-        KefList(key, instance).push(efinstance)
-    }
-
-    @Deprecated("Use ef.list(key).remove(position). Will remove in 0.7.3", ReplaceWith("list(key).remove(position)"))
-    fun listRemove(key: String, position: Int) {
-        KefList(key, instance).remove(position)
-    }
-
-    @Deprecated("Use ef.list(key).empty(). Will remove in 0.7.3", ReplaceWith("list(key).empty()"))
-    fun listEmpty(key: String) {
-        KefList(key, instance).empty()
-    }
-
-    @Deprecated("Use ef.list(key).size(). Will remove in 0.7.3", ReplaceWith("list(key).size()"))
-    fun listSize(key: String) = KefList(key, instance).size()
 
     //Refs
     fun getRefs(name:String) = instance.`$refs`[name] as HTMLElement
@@ -207,43 +139,12 @@ class Ef {
     fun debugEFPLACEHOLDER() = instance.__EFPLACEHOLDER__ as HTMLElement
 
     //Methods
-    fun setMethod(name: String, func: MethodFunction1) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs) }"))
-        methodNameMap.put(name, func)
-        instance.`$methods`[name] = methodFuncMap[func]
-    }
-    fun setMethod(name: String, func: MethodFunction2) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value) }"))
-        methodNameMap.put(name, func)
-        instance.`$methods`[name] = methodFuncMap[func]
-    }
-    fun setMethod(name: String, func: MethodFunction3) {
-        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func.call(option.state.\$k\$efjs, option.value, option.e) }"))
-        methodNameMap.put(name, func)
-        instance.`$methods`[name] = methodFuncMap[func]
-    }
-    fun setMethod(name: String, func: (state: Ef) -> Unit) {
-        setMethod(name, object : MethodFunction1 {
-            override fun invoke(state: Ef) {
-                func(state)
-            }
-        })
-    }
-    fun setMethod(name: String, func: (state: Ef, value: String) -> Unit) {
-        setMethod(name, object : MethodFunction2 {
-            override fun invoke(state: Ef, value: String) {
-                func(state, value)
-            }
-        })
-    }
     fun setMethod(name: String, func: (state: Ef, value: String, e: Event) -> Unit) {
-        setMethod(name, object : MethodFunction3 {
-            override fun invoke(state: Ef, value: String, e: Event) {
-                func(state, value, e)
-            }
-        })
+        if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func(option.state.\$k\$efjs, option.value, option.e) }"))
+        methodNameMap.put(name, func)
+        instance.`$methods`[name] = methodFuncMap[func]
     }
-    fun <T> getMethod(name: String) = methodNameMap[name].unsafeCast<T>()
+    fun getMethod(name: String) = methodNameMap[name] as (state: Ef, value: String, e: Event) -> Unit
 
 
     //Store
@@ -260,43 +161,14 @@ class Ef {
     //Raw
     fun getInstance() = instance
 
-    //Interface
-    public interface ParserFunction {
-        @JsName("call")
-        operator fun invoke(str: String)
-    }
-    interface BaseMethodFunction { }
-    public interface BunbleFunction {
-        @JsName("call")
-        operator fun invoke() : Boolean
-    }
-    public interface MethodFunction : BaseMethodFunction{
-        @JsName("call")
-        operator fun invoke()
-    }
-    public interface MethodFunction1 : BaseMethodFunction{
-        @JsName("call")
-        operator fun invoke(state: Ef)
-    }
-    public interface MethodFunction2 : BaseMethodFunction{
-        @JsName("call")
-        operator fun invoke(state: Ef, value: String)
-    }
-    public interface MethodFunction3 : BaseMethodFunction{
-        @JsName("call")
-        operator fun invoke(state: Ef, value: String, e : Event)
-    }
-
     //Helper
     class KefList(val key: String, val instance: dynamic) {
         operator fun get(position: Int): Ef? = instance[key][position]["\$k\$efjs"] as Ef
         fun push(efinstance: Ef) = instance[key].push(efinstance.instance) as Int
         fun push(vararg efinstances: Ef) : Int {
-            Ef.bundle(object : BunbleFunction {
-                override fun invoke(): Boolean {
-                    efinstances.forEach { push(it) }
-                    return false
-                }
+            Ef.bundle({
+                efinstances.forEach { push(it) }
+                false
             })
             return size()
         }
@@ -320,6 +192,10 @@ class Ef {
 
 }
 
+interface IEF {
+    fun mount(root: String, ef: Ef?)
+}
+
 fun String.prepareEf() : Ef.EfPrepare = Ef.create(this)
-fun String.instanceEf() : Ef = this.prepareEf().newInstance()
-fun String.instanceEf(config:KefConfigModel) : Ef = this.prepareEf().newInstance(config)
+fun String.instanceEf(config:KefConfigModel = kefconfig {  }) : Ef = this.prepareEf().newInstance(config)
+

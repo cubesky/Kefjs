@@ -1,16 +1,9 @@
 package kefjs
 
-@Deprecated("Use lambda instead. Will remove in 0.7.3")
-fun Ef.setOnMountListener(callback: OnMountListener?) {
-    this.editUserStore("onMountListener_\$kefexp", callback)
-}
 
-fun Ef.setOnMountListener(callback: (ef:Ef) -> Unit) {
-    setOnMountListener(object : OnMountListener {
-        override fun onMount(ef: Ef) {
-            callback(ef)
-        }
-    })
+
+fun Ef.setOnMountListener(callback: ((ef:Ef) -> Unit)?) {
+    this.editUserStore("onMountListener_\$kefexp", callback)
 }
 
 fun Ef.mount_calllistener(root: String, ef: Ef?) {
@@ -20,11 +13,9 @@ fun Ef.mount_calllistener(root: String, ef: Ef?) {
         EfStatus.RUNNING -> { /* Nothing happened */ }
     }
     this.mount(root, ef)
-    ef!!.getUserStore("onMountListener_\$kefexp", object : OnMountListener {
-        override fun onMount(ef: Ef) {
+    ef!!.getUserStore("onMountListener_\$kefexp",  { _: Ef ->
             if(Ef.infoLevel > 0) console.warn("Nothing to call")
-        }
-    }).onMount(ef)
+    })(ef!!)
 }
 
 fun Ef.Companion.status() : EfStatus {
@@ -37,6 +28,3 @@ enum class EfStatus {
     RUNNING, PAUSED, PANIC
 }
 
-interface OnMountListener {
-    fun onMount(ef: Ef)
-}
