@@ -44,7 +44,7 @@ component1.getElement() // The DOM element of component1
 component2.getElement() // The DOM element of component2
 
 component1.data["something"] = "Something new" // Update Binding Data
-component2.setMethod("someMethod", { state, value ,e ->
+component2.methods["someMethod"] = Ef.createFunc { state, value ,e ->
     state.data["something"] = "Something new"
     println("Event target ${e.target}")
     println("Value passed $value")
