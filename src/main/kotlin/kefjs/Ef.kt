@@ -15,7 +15,7 @@ class Ef : IEF{
         fun newInstance(config:KefConfigModel = kefconfig {  }): Ef = Ef(efprepare, config)
     }
     enum class EfOption(s: String) {
-        REPLACE("replace"), APPEND("append")
+        REPLACE("replace"), APPEND("append"), BEFORE("before"), AFTER("after")
     }
     private var instance : dynamic
     private val valueFuncMap = mutableMapOf<(state:Ef, value:String, e:Event)->Unit, dynamic>()
@@ -46,6 +46,8 @@ class Ef : IEF{
             }
         }
 
+        fun isPaused() = js("ef.isPaused") as Boolean
+
         fun onNextRender(func: ()->Unit) {
             js("ef.onNextRender(func)")
         }
@@ -67,6 +69,9 @@ class Ef : IEF{
         instance["\$k\$efjs"] = this
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
         data = KefData(instance)
+        methods = KefMethod(this)
+        ctx = KefCtx(instance)
+        element = ctx.nodeInfo.element
         Ef.bundle {
             config.data.forEach {
                 data[it.arg] = it.data
@@ -89,6 +94,8 @@ class Ef : IEF{
         val option_str = when(option) {
             EfOption.APPEND -> "append"
             EfOption.REPLACE -> "replace"
+            EfOption.AFTER -> "after"
+            EfOption.BEFORE -> "before"
         }
         instance.`$mount`(js("{target: target, option: option_str}"))
     }
@@ -98,6 +105,10 @@ class Ef : IEF{
     fun umount() {
         instance.`$umount`()
     }
+
+    //Context
+    public val ctx : KefCtx
+    public val element : HTMLElement
 
     //Subscribe
     fun subscribe(name: String, func: (state: Ef, value: String, e: Event)-> Unit) {
@@ -126,25 +137,15 @@ class Ef : IEF{
     //Refs
     fun getRefs(name:String) = instance.`$refs`[name] as HTMLElement
 
-    //Parent
-    fun getParent() = instance.`$parent`
-
-    //Key
-    fun getKey() = instance.`$key` as String
-
-    //Element
-    fun getElement() = instance.`$element` as HTMLElement
-
-    //EFPLACEHOLDER
-    fun debugEFPLACEHOLDER() = instance.__EFPLACEHOLDER__ as HTMLElement
 
     //Methods
-    fun setMethod(name: String, func: (state: Ef, value: String, e: Event) -> Unit) {
+    var methods : KefMethod
+    private fun setMethod(name: String, func: (state: Ef, value: String, e: Event) -> Unit) {
         if (!methodFuncMap.containsKey(func)) methodFuncMap.put(func, js("function (option) { func(option.state.\$k\$efjs, option.value, option.e) }"))
         methodNameMap.put(name, func)
         instance.`$methods`[name] = methodFuncMap[func]
     }
-    fun getMethod(name: String) = methodNameMap[name] as (state: Ef, value: String, e: Event) -> Unit
+    private fun getMethod(name: String) = methodNameMap[name] as (state: Ef, value: String, e: Event) -> Unit
 
 
     //Store
@@ -182,11 +183,23 @@ class Ef : IEF{
         fun size() = instance[key].length as Int
     }
 
+    class KefMethod(val ef: Ef) {
+        operator fun get(name: String) = ef.getMethod(name)
+        operator fun set(name: String, func: (state: Ef, value: String, e:Event) -> Unit) = ef.setMethod(name, func)
+    }
+
     class KefData(val instance: dynamic) {
         operator fun get(arg: String) = instance.`$data`[arg] as Any
         operator fun <T> get(arg: String) = instance.`$data`[arg].unsafeCast<T>()
         operator fun set(arg: String, data:Any) {
             instance.`$data`[arg] = data
+        }
+    }
+
+    class KefCtx(instance: dynamic) {
+        var nodeInfo = KefCtxNodeInfo(instance)
+        class KefCtxNodeInfo(val instance: dynamic) {
+            var element = instance.element as HTMLElement
         }
     }
 
