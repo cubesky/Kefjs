@@ -1,6 +1,7 @@
 package kefjs
 
 import org.w3c.dom.events.Event
+import kotlin.js.Promise
 
 @DslMarker
 annotation class KefConfig
@@ -71,3 +72,29 @@ data class KefConfigModel(val data: MutableList<KefDataModel>,
                           val method: MutableList<KefMethodModel>,
                           val mount: MutableMap<String, Ef>,
                           val onMount: ((ef: Ef)->Unit)?)
+
+
+@DslMarker
+annotation class KefHook
+
+@KefHook
+class KefHookBuilder {
+    private var mountFunc: ((func:()->Unit, that: Ef)-> Unit) = { func, _ ->
+        func()
+    }
+    private var umountFunc: ((func:()->Unit, that: Ef)-> Unit) = { func, _ ->
+        func()
+    }
+    fun mount(mountFunc: (func:()->Unit, that: Ef)-> Unit) {
+        this.mountFunc = mountFunc
+    }
+    fun umount(umountFunc: (func:()->Unit, that: Ef)-> Unit) {
+        this.umountFunc = umountFunc
+    }
+    fun build(): KefHookModel = KefHookModel(this.mountFunc, this.umountFunc)
+
+}
+
+fun kefhook(setup: KefHookBuilder. ()-> Unit): KefHookModel = KefHookBuilder().apply { this.setup() }.build()
+
+data class KefHookModel(val mountFunc: ((func: () -> Unit, that: Ef) -> Unit), val umountFunc: ((func: () -> Unit, that: Ef) -> Unit))

@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    ext.kotlin_version = '1.2.41'
 
     repositories {
         mavenCentral()
@@ -10,7 +10,7 @@ buildscript {
 }
 
 group 'party.liyin'
-version '0.8.0-K1'
+version '0.8.1-K2'
 
 apply plugin: 'kotlin2js'
 apply plugin: 'maven'
