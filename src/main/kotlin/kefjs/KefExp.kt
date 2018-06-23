@@ -1,18 +1,22 @@
 package kefjs
 
 
-
+@Deprecated("Use efhook when prepare. This method will removed in 0.8.2")
 fun Ef.setOnMountListener(callback: ((ef:Ef) -> Unit)?) {
-    this.editUserStore("onMountListener_\$kefexp", callback)
-}
-
-fun Ef.mount_calllistener(root: String, ef: Ef?) {
-    if (Ef.infoLevel > 0) if(Ef.isPaused()) {
-        console.warn("ef.js render is paused! Check your code!")
+    if(callback == null) {
+        this.efhook.mountFunc = { func, that ->
+            kotlin.run(func)
+        }
+    } else {
+        val hookFunc = this.efhook.mountFunc
+        this.efhook.mountFunc = { func, that ->
+            run {
+                hookFunc(func, that)
+                callback(that)
+            }
+        }
     }
-    this.mount(root, ef)
-    ef!!.getUserStore("onMountListener_\$kefexp",  { _: Ef ->
-            if(Ef.infoLevel > 0) console.warn("Nothing to call")
-    })(ef!!)
 }
 
+@Deprecated("Use efhook when prepare. This method will removed in 0.8.2.", ReplaceWith("this.mount(root, ef)"))
+fun Ef.mount_calllistener(root: String, ef: Ef?) = this.mount(root,ef)

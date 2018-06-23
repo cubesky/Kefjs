@@ -56,6 +56,7 @@ class KefConfigBuilder {
         method.addAll(methods)
     }
 
+    @Deprecated("Use efhook when prepare")
     fun onMount(callback : (ef: Ef)->Unit) {
         this.onMountListener = callback
     }
@@ -97,4 +98,4 @@ class KefHookBuilder {
 
 fun kefhook(setup: KefHookBuilder. ()-> Unit): KefHookModel = KefHookBuilder().apply { this.setup() }.build()
 
-data class KefHookModel(val mountFunc: ((func: () -> Unit, that: Ef) -> Unit), val umountFunc: ((func: () -> Unit, that: Ef) -> Unit))
+data class KefHookModel(var mountFunc: ((func: () -> Unit, that: Ef) -> Unit), var umountFunc: ((func: () -> Unit, that: Ef) -> Unit))

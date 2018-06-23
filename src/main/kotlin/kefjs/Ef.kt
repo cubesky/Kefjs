@@ -29,7 +29,7 @@ class Ef : IEF {
     private val valueFuncMap = mutableMapOf<(state: Ef, value: String, e: Event) -> Unit, dynamic>()
     private val methodFuncMap = mutableMapOf<(state: Ef, value: String, e: Event) -> Unit, dynamic>()
     private val methodNameMap = mutableMapOf<String, (state: Ef, value: String, e: Event) -> Unit>()
-    private var efhook: KefHookModel
+    var efhook: KefHookModel
 
     companion object {
         /*
@@ -90,12 +90,13 @@ class Ef : IEF {
             config.method.forEach {
                 setMethod(it.name, it.func)
             }
-            this.setOnMountListener(config.onMount)
+
             val isDebug = Ef.infoLevel
             Ef.infoLevel = 0 //Temporarily disable Ef status check
             config.mount.forEach {
-                mount_calllistener(it.key, it.value)
+                this.mount(it.key, it.value)
             }
+            this.setOnMountListener(config.onMount)
             Ef.infoLevel = isDebug //Restore Ef status check
             false
         }
