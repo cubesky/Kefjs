@@ -90,13 +90,11 @@ class Ef : IEF {
             config.method.forEach {
                 setMethod(it.name, it.func)
             }
-
             val isDebug = Ef.infoLevel
             Ef.infoLevel = 0 //Temporarily disable Ef status check
             config.mount.forEach {
                 this.mount(it.key, it.value)
             }
-            this.setOnMountListener(config.onMount)
             Ef.infoLevel = isDebug //Restore Ef status check
             false
         }
