@@ -18,6 +18,8 @@ class Ef : IEF {
             efprepare = js("(ef.create(ast))")
         }
 
+        fun getPrepared() = efprepare
+
         fun newInstance(config: KefConfigModel = kefconfig { }): Ef = Ef(efprepare, config, efhook)
     }
 
@@ -73,15 +75,43 @@ class Ef : IEF {
 
         //Utils
         fun createFunc(func: (state: Ef, value: String, e: Event) -> Unit) = func
+
+        //ef.js to limited Kef
+        fun getLimitedEf(ef: dynamic) : Ef {
+            return if (js("\"\$k\$efjs\" in ef") as Boolean) {
+                Ef.getKEf(ef)
+            } else {
+                Ef(ef)
+            }
+        }
     }
 
-    private constructor(proto: EfPrepare, config: KefConfigModel, efhook: KefHookModel) {
-        instance = js("new proto")
+    private constructor(ef: dynamic) {
+        instance = ef
         instance["\$k\$efjs"] = this
         instance["getKEf"] = js("function () { return this.\$k\$efjs }")
         data = KefData(instance)
         methods = KefMethod(this)
-        element = instance["\$ctx"].nodeInfo.element
+        element = instance["\$ctx"].nodeInfo.element as HTMLElement
+        this.efhook = kefhook {  }
+    }
+
+    private constructor(proto: EfPrepare, config: KefConfigModel, efhook: KefHookModel, scope: Map<String, EfPrepare>? = null) {
+        val rawScope : dynamic = if(scope == null) {
+            js("undefined")
+        } else {
+            val rmap = js("({})")
+            scope.forEach {
+                rmap[it.key] = it.value.getPrepared()
+            }
+            rmap
+        }
+        instance = js("new proto(null, rawScope)")
+        instance["\$k\$efjs"] = this
+        instance["getKEf"] = js("function () { return this.\$k\$efjs }")
+        data = KefData(instance)
+        methods = KefMethod(this)
+        element = instance["\$ctx"].nodeInfo.element as HTMLElement
         this.efhook = efhook
         Ef.bundle {
             config.data.forEach {
@@ -170,8 +200,23 @@ class Ef : IEF {
 
 
     //Refs
-    fun getRefs(name: String) = instance.`$refs`[name] as HTMLElement
-
+    fun getRefs(name: String) : HTMLElement {
+        val ref = instance.`$refs`[name]
+        if ((ref instanceof js("HTMLElement")) as Boolean) {
+            return ref as HTMLElement
+        } else {
+            throw ClassCastException("Can not get ef.js scope as HTMLElement")
+        }
+    }
+    //Scoped Ref
+    fun getScopedRef(name: String) : Ef {
+        val ref = instance.`$refs`[name]
+        if ((ref instanceof js("HTMLElement")) as Boolean) {
+            throw ClassCastException("Can not get ef.js scope as HTMLElement")
+        } else {
+            return Ef.getLimitedEf(ref)
+        }
+    }
 
     //Methods
     var methods: KefMethod

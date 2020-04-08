@@ -77,14 +77,7 @@ These feature is provide by Kefjs. Maybe not stable or maybe not recommended by 
     component1.editUserStore(key, value) //key is String, value is Any, pass null to value can remove this key.  
     component1.getUserStore(key, default) //get value or default
    ```
- * OnMountListener
-   ```kotlin
-    component2.setOnMountListener{ ef ->
-             //Default
-    } //Set Listener, use null to remove this listener
-    component1.mount_calllistener("mountpoint", component2) //Mount and call listener
-    ```
-    This feature is based on Data Store.
+
 
 ## LICENSE
 [MIT](https://raw.githubusercontent.com/cubesky/Kefjs/master/LICENSE)
